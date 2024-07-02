@@ -1,6 +1,6 @@
 from gensim.models import KeyedVectors
 import gensim.downloader as api
-import pandas as pd
+import csv
 import argparse
 import os
 
@@ -18,7 +18,7 @@ def compute_similarity(model, words):
     words (list of str): List of words to compute similarity.
 
     Returns:
-    list: List of similarity scores between consecutive words.
+    list of tuple: List of tuples containing word pairs and their similarity score.
     """
     similarities = []
     for i in range(len(words) - 1):
@@ -28,7 +28,7 @@ def compute_similarity(model, words):
             similarity = model.similarity(word1, word2)
         else:
             similarity = None  # Handle words not in the model
-        similarities.append(similarity)
+        similarities.append(((word1, word2), similarity))
     return similarities
 
 
@@ -62,31 +62,38 @@ if __name__ == "__main__":
     parser.add_argument("--task", type=str, default="CFA", help="Task identifier")
     parser.add_argument("--n_proc", type=int, default=16, help="Number of processes")
     args = parser.parse_args()
-
-    # Path to your pre-trained Word2Vec model
+    # Path to your pre-trained Word2Vec model (e.g., 'GoogleNews-vectors-negative300.bin')
     model_path = api.load("word2vec-google-news-300", return_path=True)
 
     # Load the Word2Vec model
     model = KeyedVectors.load_word2vec_format(model_path, binary=True)
 
     # Path to your input TSV file
-    input_file_path = "C:/Users/krish/Desktop/AMHR Research/amhr-fahh/current_fals.tsv"
+    input_file_path = f"/data/{USER}/fahh/processed_fals/{args.f_in}"
 
-    # Load the TSV file into a DataFrame
-    df = pd.read_csv(input_file_path, delimiter="\t")
+    # Open the input TSV file and read the words
+    words_list = []
+    with open(input_file_path, "r", newline="") as file:
+        reader = csv.reader(file, delimiter="\t")
+        for row in reader:
+            words_list.extend(row)  # Assuming words are in a single column
 
-    # Compute similarities for each row
-    for index, row in df.iterrows():
-        words = row[2:].tolist()
-        similarities = compute_similarity(model, words)
-        for i, sim in enumerate(similarities):
-            col_name = f"similarity_{i+1}"
-            df.at[index, col_name] = sim
+    # Compute similarities
+    similarities = compute_similarity(model, words_list)
 
-    similarity_cols = [f"similarity_{i+1}" for i in range(19)]
-    columns_to_keep = ["PROLIFIC_PID", "Task"] + similarity_cols
-    df = df[columns_to_keep]
+    # Open a file in write mode
+    with open("similarities.tsv", "w", newline="") as file:
+        writer = csv.writer(file, delimiter="\t")
 
-    # Save the updated DataFrame to a TSV file
-    output_file_path = "C:/Users/krish/Desktop/AMHR Research/amhr-fahh/output.tsv"
-    df.to_csv(output_file_path, sep="\t", index=False)
+        # Write the header (optional)
+        writer.writerow(["Word1", "Word2", "Similarity"])
+
+        # Loop through the pairs and their similarities
+        for pair, sim in similarities:
+            word1, word2 = pair
+            if sim is not None:
+                # Write the pair and similarity to the file
+                writer.writerow([word1, word2, f"{sim:.4f}"])
+            else:
+                # Handle the case where one or both words are not in the model vocabulary
+                writer.writerow([word1, word2, "N/A"])

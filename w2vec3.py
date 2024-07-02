@@ -83,9 +83,8 @@ if __name__ == "__main__":
             col_name = f"similarity_{i+1}"
             df.at[index, col_name] = sim
 
-    # Select columns to keep (Prolific_ID, Task, and similarity columns)
     similarity_cols = [f"similarity_{i+1}" for i in range(19)]
-    columns_to_keep = ["Prolific_ID", "Task"] + similarity_cols
+    columns_to_keep = ["PROLIFIC_PID", "Task"] + similarity_cols
     df = df[columns_to_keep]
 
     # Save the updated DataFrame to a TSV file

@@ -36,7 +36,7 @@ def compute_similarity(model, words):
 def process_row(row):
     words = row[2:]  # Skip the first two columns
     similarities = compute_similarity(model, words)
-    return pd.Series(similarities)
+    return pd.Series(similarities, name="similarity")
 
 
 if __name__ == "__main__":
@@ -81,6 +81,11 @@ if __name__ == "__main__":
 
     # Combine the PROLIFIC_PID, Task, and similarity DataFrames
     result_df = pd.concat([df[["PROLIFIC_PID", "Task"]], similarity_df], axis=1)
+
+    # Rename columns to similarity_1, similarity_2, ..., similarity_n
+    result_df.columns = ["PROLIFIC_PID", "Task"] + [
+        f"similarity_{i+1}" for i in range(len(similarity_df.columns))
+    ]
 
     # Specify the output file path
     output_file_path = f"/data/{USER}/fahh/similarities/{args.f_out}.tsv"

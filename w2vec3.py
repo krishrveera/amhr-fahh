@@ -18,9 +18,8 @@ def compute_similarity(model, words):
     words (list of str): List of words to compute similarity.
 
     Returns:
-    list: List of similarity scores between consecutive words.
+    similarity: a similarity score between consecutive words.
     """
-    similarities = []
     for i in range(len(words) - 1):
         word1 = words[i]
         word2 = words[i + 1]
@@ -28,8 +27,7 @@ def compute_similarity(model, words):
             similarity = model.similarity(word1, word2)
         else:
             similarity = None  # Handle words not in the model
-        similarities.append(similarity)
-    return similarities
+    return similarity
 
 
 if __name__ == "__main__":

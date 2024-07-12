@@ -94,12 +94,12 @@ if __name__ == "__main__":
     result_df.to_csv(output_file_path, sep="\t", index=False)
     print(f"Similarities saved to {output_file_path}.")
 
-    # Calculate differences between consecutive similarities
+    # Calculate absolute differences between consecutive similarities
     differences_df = pd.DataFrame()
     for i in range(1, len(similarity_df.columns)):
-        diff_col_name = f"difference_similarity_{i}"
+        diff_col_name = f"absolute_difference_similarity_{i}"
         differences_df[diff_col_name] = (
-            result_df[f"similarity_{i+1}"] - result_df[f"similarity_{i}"]
+            result_df[f"similarity_{i+1}"].sub(result_df[f"similarity_{i}"]).abs()
         )
 
     # Specify the output file path for difference_in_similarity.tsv
@@ -107,6 +107,6 @@ if __name__ == "__main__":
         f"/data/{USER}/fahh/similarities/difference_in_similarity.tsv"
     )
 
-    # Save the differences to difference_in_similarity.tsv
+    # Save the absolute differences to difference_in_similarity.tsv
     differences_df.to_csv(diff_output_file_path, sep="\t", index=False)
-    print(f"Differences saved to {diff_output_file_path}.")
+    print(f"Absolute differences saved to {diff_output_file_path}.")
